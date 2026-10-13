@@ -1,2 +1,55 @@
+/* MDI y droni-kit van en capas para que las clases de Tailwind (text-xl, etc.) siempre los puedan ajustar */
+@layer theme, base, droni, components, utilities;
+@import url("https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css") layer(base);
 @import "tailwindcss";
-@import "@dronico/droni-kit/dist/droni-kit.css";
+@import "@dronico/droni-kit/dist/droni-kit.css" layer(droni);
+
+/* Modo oscuro por clase, igual que droni-kit */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --dk-font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-zinc-800 antialiased dark:bg-zinc-950 dark:text-zinc-200;
+}
+
+/* Texto largo (lecciones y blog) pensado para leer cómodo */
+.reading {
+  @apply max-w-prose text-lg leading-8 text-zinc-700 dark:text-zinc-300;
+}
+.reading h2 {
+  @apply mt-10 mb-4 text-2xl font-bold text-zinc-900 dark:text-white;
+}
+.reading h3 {
+  @apply mt-8 mb-3 text-xl font-semibold text-zinc-900 dark:text-white;
+}
+.reading p,
+.reading ul,
+.reading ol {
+  @apply mb-5;
+}
+.reading ul {
+  @apply list-disc pl-6;
+}
+.reading ol {
+  @apply list-decimal pl-6;
+}
+.reading strong {
+  @apply font-semibold text-zinc-900 dark:text-white;
+}
+.reading blockquote {
+  @apply my-6 rounded-r-lg border-l-4 border-slate-400 bg-slate-50 px-5 py-3 italic dark:bg-zinc-900;
+}
+.reading code {
+  @apply rounded bg-zinc-100 px-1.5 py-0.5 text-base dark:bg-zinc-800;
+}
