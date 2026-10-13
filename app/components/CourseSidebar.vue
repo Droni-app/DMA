@@ -1,0 +1,85 @@
+<template>
+  <div v-if="course" class="flex h-full flex-col">
+    <!-- Curso y avance -->
+    <div class="border-b border-zinc-200 p-5 dark:border-zinc-800">
+      <NuxtLink :to="user ? '/panel/cursos' : '/cursos'" class="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white" @click="emit('navigate')">
+        <i class="mdi mdi-arrow-left" aria-hidden="true" /> {{ user ? 'Mis cursos' : 'Todos los cursos' }}
+      </NuxtLink>
+      <div class="mt-4 flex items-center gap-3">
+        <CourseCover :group="course.group" :picture="course.picture" class="size-12 shrink-0 [&_i]:text-2xl" />
+        <div class="min-w-0">
+          <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">{{ course.group }}</p>
+          <h2 class="font-semibold leading-snug text-zinc-900 dark:text-white">{{ course.name }}</h2>
+        </div>
+      </div>
+      <div v-if="enrollment" class="mt-5">
+        <div class="mb-2 flex justify-between text-sm">
+          <span class="text-zinc-600 dark:text-zinc-400">Tu avance</span>
+          <span class="font-semibold text-zinc-900 dark:text-white">{{ percent }}%</span>
+        </div>
+        <ProgressBar :value="percent" />
+        <p class="mt-2 text-xs text-zinc-500">{{ doneCount }} de {{ lessons.length }} lecciones completadas</p>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-3">
+      <NuxtLink
+        :to="base"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm"
+        :class="linkClass(route.path === base)"
+        @click="emit('navigate')"
+      >
+        <i class="mdi mdi-information-outline text-lg" aria-hidden="true" /> Presentación del curso
+      </NuxtLink>
+
+      <h3 class="mt-5 px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Lecciones</h3>
+      <ol class="mt-2 space-y-0.5">
+        <li v-for="(lesson, i) in lessons" :key="lesson.id">
+          <NuxtLink
+            :to="`${base}/${lesson.slug}`"
+            class="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm"
+            :class="linkClass(route.params.lesson === lesson.slug)"
+            @click="emit('navigate')"
+          >
+            <i
+              class="mt-0.5 text-lg leading-none"
+              :class="isDone(lesson) ? 'mdi mdi-check-circle text-emerald-500' : 'mdi mdi-circle-outline text-zinc-400'"
+              :aria-label="isDone(lesson) ? 'Completada' : 'Pendiente'"
+            />
+            <span class="flex-1">
+              <span class="block">{{ i + 1 }}. {{ lesson.name }}</span>
+              <span class="mt-0.5 flex gap-2 text-xs text-zinc-500">
+                <span v-if="lesson.video"><i class="mdi mdi-play-circle-outline" aria-hidden="true" /> Video</span>
+                <span v-if="lesson.activity"><i class="mdi mdi-pencil-outline" aria-hidden="true" /> Actividad</span>
+              </span>
+            </span>
+          </NuxtLink>
+        </li>
+      </ol>
+
+      <!-- Recursos del curso -->
+      <template v-if="course.video">
+        <h3 class="mt-6 px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Recursos</h3>
+        <a :href="course.video" target="_blank" rel="noopener" class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
+          <i class="mdi mdi-youtube text-lg" aria-hidden="true" /> Video de presentación
+        </a>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps<{ slug: string }>()
+const emit = defineEmits<{ navigate: [] }>()
+
+const route = useRoute()
+const { course, lessons, enrollment, isDone, doneCount, percent } = await useCourse(props.slug)
+const base = `/cursos/${props.slug}`
+const { user } = useAuth()
+
+function linkClass(active: boolean) {
+  return active
+    ? 'bg-slate-100 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-white'
+    : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+}
+</script>

@@ -1,50 +1,56 @@
 <template>
-  <div class="space-y-8">
-    <fieldset v-for="(q, i) in questions" :key="q.id" class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-      <legend class="px-2 text-sm text-zinc-500">Pregunta {{ i + 1 }} de {{ questions.length }}</legend>
-      <p class="mb-4 text-lg font-medium text-zinc-900 dark:text-white">{{ q.name }}</p>
-      <DuiRadio v-model="answers[q.id]" :name="q.id" :options="options(q)" :disabled="checked" />
-      <p v-if="checked" class="mt-4 text-sm font-medium" :class="isCorrect(q) ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
-        <i :class="isCorrect(q) ? 'mdi mdi-check-circle' : 'mdi mdi-close-circle'" aria-hidden="true" />
-        {{ isCorrect(q) ? '¡Correcto!' : `La respuesta correcta es: ${q[`response${q.responseCorrect}` as keyof typeof q]}` }}
-      </p>
-    </fieldset>
-
-    <DuiAlert v-if="checked" :color="score === questions.length ? 'success' : 'warning'" variant="outline">
-      Obtuviste {{ score }} de {{ questions.length }}. {{ score === questions.length ? '¡Excelente trabajo!' : 'Repasa la lección y vuelve a intentarlo.' }}
+  <div>
+    <DuiAlert v-if="quiz" color="success" variant="outline" class="mb-8">
+      <strong>Ya enviaste este quiz.</strong>
+      <span v-if="quiz.results"> Resultado: {{ quiz.results }}</span>
     </DuiAlert>
 
-    <div class="flex gap-3">
-      <DuiButton v-if="!checked" color="primary" :disabled="Object.keys(answers).length < questions.length" @click="checked = true">
-        Revisar respuestas
+    <div v-else class="space-y-8">
+      <fieldset v-for="(q, i) in questions" :key="q.id" class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+        <legend class="px-2 text-sm text-zinc-500">Pregunta {{ i + 1 }} de {{ questions.length }}</legend>
+        <p class="text-lg font-medium text-zinc-900 dark:text-white">{{ q.name }}</p>
+        <p v-if="q.description" class="mt-1 text-zinc-600 dark:text-zinc-400">{{ q.description }}</p>
+        <DuiRadio v-model="answers[q.id]" :name="q.id" :options="options(q)" class="mt-4" />
+      </fieldset>
+
+      <DuiAlert v-if="error" color="danger" variant="outline">{{ error }}</DuiAlert>
+      <DuiButton v-if="!readonly" color="primary" :loading="sending" :disabled="Object.keys(answers).length < questions.length" @click="send">
+        Enviar respuestas
       </DuiButton>
-      <DuiButton v-else variant="outline" color="neutral" @click="reset">Intentar de nuevo</DuiButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { questions } from '~/data/courses'
+import type { LessonQuiz, Question } from '~/types/api'
 
-type Question = (typeof questions)[number]
+const props = defineProps<{ path: string; questions: Question[]; quiz: LessonQuiz | null; readonly?: boolean }>()
+const emit = defineEmits<{ sent: [] }>()
 
 const answers = ref<Record<string, string>>({})
-const checked = ref(false)
+const sending = ref(false)
+const error = ref('')
 
-// La API trae response1..response5 y responseCorrect (número)
+// Las opciones van numeradas desde 1, igual que responseCorrect en la API
 function options(q: Question) {
-  return [q.response1, q.response2, q.response3, q.response4]
-    .map((label, i) => ({ label, value: String(i + 1) }))
+  return [q.response1, q.response2, q.response3, q.response4, q.response5]
+    .map((label, i) => ({ label: label ?? '', value: String(i + 1) }))
+    .filter(option => option.label)
 }
 
-function isCorrect(q: Question) {
-  return answers.value[q.id] === String(q.responseCorrect)
-}
-
-const score = computed(() => questions.filter(isCorrect).length)
-
-function reset() {
-  answers.value = {}
-  checked.value = false
+async function send() {
+  sending.value = true
+  error.value = ''
+  try {
+    await apiFetch(`${props.path}/quizzes`, {
+      method: 'POST',
+      body: { answers: Object.entries(answers.value).map(([question_id, selected]) => ({ question_id, selected: Number(selected) })) },
+    })
+    emit('sent')
+  } catch (e) {
+    error.value = apiError(e, 'No pudimos enviar tus respuestas.')
+  } finally {
+    sending.value = false
+  }
 }
 </script>

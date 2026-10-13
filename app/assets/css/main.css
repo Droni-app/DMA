@@ -50,6 +50,19 @@ body {
 .reading blockquote {
   @apply my-6 rounded-r-lg border-l-4 border-slate-400 bg-slate-50 px-5 py-3 italic dark:bg-zinc-900;
 }
+.reading table {
+  @apply mb-6 w-full border-collapse text-base;
+}
+.reading th,
+.reading td {
+  @apply border border-zinc-200 px-4 py-2 text-left dark:border-zinc-800;
+}
+.reading th {
+  @apply bg-zinc-50 font-semibold text-zinc-900 dark:bg-zinc-900 dark:text-white;
+}
+.reading img {
+  @apply my-6 rounded-xl;
+}
 .reading code {
   @apply rounded bg-zinc-100 px-1.5 py-0.5 text-base dark:bg-zinc-800;
 }

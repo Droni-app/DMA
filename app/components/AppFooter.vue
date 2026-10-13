@@ -30,8 +30,8 @@ const links = [
     title: 'Aprende',
     items: [
       { label: 'Todos los cursos', to: '/cursos' },
-      { label: 'Matemáticas', to: '/cursos?materia=matematicas' },
-      { label: 'Preparación Saber 11', to: '/cursos?materia=saber-11' },
+      { label: 'Matemáticas', to: '/cursos?materia=Matemáticas' },
+      { label: 'Preparación Saber 11', to: '/cursos?materia=Saber 11' },
     ],
   },
   {

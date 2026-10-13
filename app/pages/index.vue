@@ -15,12 +15,6 @@
           <DuiAction to="/registro" color="primary" size="lg">Empieza gratis</DuiAction>
           <DuiAction to="/cursos" variant="outline" color="neutral" size="lg">Ver cursos</DuiAction>
         </div>
-        <dl class="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-6 sm:grid-cols-4">
-          <div v-for="stat in stats" :key="stat.label">
-            <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ stat.label }}</dt>
-            <dd class="mt-1 text-3xl font-bold text-zinc-900 dark:text-white">{{ stat.value }}</dd>
-          </div>
-        </dl>
       </div>
     </section>
 
@@ -32,8 +26,8 @@
         <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <NuxtLink
             v-for="subject in subjects"
-            :key="subject.slug"
-            :to="`/cursos?materia=${subject.slug}`"
+            :key="subject.name"
+            :to="{ path: '/cursos', query: { materia: subject.name } }"
             class="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
           >
             <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white" :class="subject.cover">
@@ -50,14 +44,15 @@
       <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-end justify-between gap-4">
           <div>
-            <h2 id="destacados" class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Cursos más populares</h2>
-            <p class="mt-3 text-lg text-zinc-600 dark:text-zinc-400">Elegidos por miles de estudiantes este mes.</p>
+            <h2 id="destacados" class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Cursos recientes</h2>
+            <p class="mt-3 text-lg text-zinc-600 dark:text-zinc-400">Empieza hoy con cualquiera de ellos, es gratis.</p>
           </div>
           <DuiAction to="/cursos" variant="ghost" color="neutral" class="hidden sm:inline-flex">Ver todos →</DuiAction>
         </div>
-        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <CourseCard v-for="course in featured" :key="course.id" :course="course" />
+        <div v-if="courses?.data.length" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <CourseCard v-for="course in courses.data" :key="course.id" :course="course" />
         </div>
+        <EmptyState v-else class="mt-10" icon="mdi mdi-book-clock-outline" title="Muy pronto tendremos cursos aquí" text="Estamos preparando el contenido. ¡Vuelve en unos días!" />
       </div>
     </section>
 
@@ -97,21 +92,15 @@
 </template>
 
 <script setup lang="ts">
-import { courses, subjects } from '~/data/courses'
+import { subjects } from '~/data/subjects'
+import type { Course, Paginated } from '~/types/api'
 
 useSeo({
   title: 'Refuerzo escolar en línea para bachillerato',
   description: 'DMA (Droni.co Modern Academy): cursos virtuales de matemáticas, lenguaje, ciencias, inglés y preparación Saber 11 para estudiantes de 6° a 11°.',
 })
 
-const featured = [...courses].sort((a, b) => b.students - a.students).slice(0, 6)
-
-const stats = [
-  { label: 'Estudiantes', value: '12.000+' },
-  { label: 'Cursos', value: `${courses.length}` },
-  { label: 'Lecciones', value: `${courses.reduce((n, c) => n + c.lessons.length, 0)}` },
-  { label: 'Calificación', value: '4.8★' },
-]
+const { data: courses } = await useApi<Paginated<Course>>('/learn/courses?per_page=6')
 
 const steps = [
   { icon: 'mdi mdi-account-plus-outline', title: 'Crea tu cuenta', text: 'Regístrate gratis en menos de un minuto con tu correo o tu cuenta de Google.' },

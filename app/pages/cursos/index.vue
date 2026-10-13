@@ -3,7 +3,7 @@
     <PageHeader
       eyebrow="Catálogo"
       title="Cursos de refuerzo para bachillerato"
-      description="Encuentra el curso que necesitas por materia o grado. Todos incluyen lecciones cortas y ejercicios con retroalimentación."
+      description="Encuentra el curso que necesitas por materia o grado. Todos incluyen lecciones cortas y actividades."
     />
 
     <div class="mx-auto max-w-6xl px-4 py-10">
@@ -18,15 +18,14 @@
       <div v-if="filtered.length" class="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <CourseCard v-for="course in filtered" :key="course.id" :course="course" />
       </div>
-      <DuiAlert v-else color="neutral" variant="outline" class="mt-4">
-        No encontramos cursos con esos filtros. Prueba con otra materia o grado.
-      </DuiAlert>
+      <EmptyState v-else class="mt-4" icon="mdi mdi-magnify-close" title="No encontramos cursos" text="Prueba con otra materia, otro grado u otra búsqueda." />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { courses, grades, subjects } from '~/data/courses'
+import { parseGroup } from '~/data/subjects'
+import type { Course, Paginated } from '~/types/api'
 
 useSeo({
   title: 'Cursos de matemáticas, lenguaje, ciencias e inglés',
@@ -34,15 +33,21 @@ useSeo({
 })
 
 const route = useRoute()
+const { data } = await useApi<Paginated<Course>>('/learn/courses?per_page=100')
+
+const courses = computed(() => (data.value?.data ?? []).map(course => ({ ...course, ...parseGroup(course.group) })))
+
 const search = ref('')
 const subject = ref(String(route.query.materia ?? ''))
 const grade = ref(String(route.query.grado ?? ''))
 
-const subjectOptions = [{ label: 'Todas las materias', value: '' }, ...subjects.map(s => ({ label: s.name, value: s.slug }))]
-const gradeOptions = [{ label: 'Todos los grados', value: '' }, ...grades.map(g => ({ label: `Grado ${g}`, value: g }))]
+// Las opciones salen de los cursos que existen
+const unique = (values: (string | null)[]) => [...new Set(values.filter(Boolean))].sort() as string[]
+const subjectOptions = computed(() => [{ label: 'Todas las materias', value: '' }, ...unique(courses.value.map(c => c.subject)).map(s => ({ label: s, value: s }))])
+const gradeOptions = computed(() => [{ label: 'Todos los grados', value: '' }, ...unique(courses.value.map(c => c.grade)).map(g => ({ label: `Grado ${g}`, value: g }))])
 
 const filtered = computed(() =>
-  courses.filter(c =>
+  courses.value.filter(c =>
     (!subject.value || c.subject === subject.value)
     && (!grade.value || c.grade === grade.value)
     && c.name.toLowerCase().includes(search.value.toLowerCase()),

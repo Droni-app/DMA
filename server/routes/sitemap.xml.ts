@@ -1,17 +1,23 @@
-import { courses } from '../../app/data/courses'
-import { posts } from '../../app/data/posts'
-import { topics } from '../../app/data/topics'
-
-export default defineEventHandler((event) => {
+// Sitemap con las páginas públicas y el contenido real del backend (vía el bypass /api/appi)
+export default defineEventHandler(async (event) => {
   const base = useRuntimeConfig().public.appUrl
+  const list = (path: string) =>
+    $fetch<{ data: { slug: string }[] }>(`/api/appi${path}?per_page=1000`)
+      .then(res => res.data.map(item => item.slug))
+      .catch(() => [] as string[])
+
+  const [courses, posts, topics] = await Promise.all([list('/learn/courses'), list('/content/posts'), list('/social/topics')])
+  const lessons = await Promise.all(courses.map(async course => (await list(`/learn/courses/${course}/lessons`)).map(lesson => `/cursos/${course}/${lesson}`)))
+
   const paths = [
     '/',
     '/cursos',
     '/blog',
     '/comunidad',
-    ...courses.map(c => `/cursos/${c.slug}`),
-    ...posts.map(p => `/blog/${p.slug}`),
-    ...topics.map(t => `/comunidad/${t.slug}`),
+    ...courses.map(slug => `/cursos/${slug}`),
+    ...lessons.flat(),
+    ...posts.map(slug => `/blog/${slug}`),
+    ...topics.map(slug => `/comunidad/${slug}`),
   ]
 
   setHeader(event, 'content-type', 'application/xml')
