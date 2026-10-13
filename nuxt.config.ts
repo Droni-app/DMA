@@ -10,4 +10,9 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  runtimeConfig: {
+    appi: process.env.APPI,
+    appiSiteId: process.env.APPI_SITE_ID,
+    appUrl: process.env.APP_URL,
+  },
 })
