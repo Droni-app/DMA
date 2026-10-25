@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Droni-kit Violet Brand Gradient -->
+    <linearGradient id="dma-ele-violet" x1="10%" y1="10%" x2="90%" y2="90%">
+      <stop offset="0%" stop-color="#a175fd"/>
+      <stop offset="50%" stop-color="#7130eb"/>
+      <stop offset="100%" stop-color="#4e1ca9"/>
+    </linearGradient>
+
+    <!-- Droni-kit Ear Warm Accent Gradient -->
+    <linearGradient id="dma-ele-ear" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f23282"/>
+      <stop offset="40%" stop-color="#8a4cf7"/>
+      <stop offset="100%" stop-color="#31106e"/>
+    </linearGradient>
+
+    <!-- Droni-kit Cyan Accent Gradient -->
+    <linearGradient id="dma-ele-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e2f9"/>
+      <stop offset="100%" stop-color="#088db2"/>
+    </linearGradient>
+
+    <!-- Glow & Soft Shadow -->
+    <filter id="dma-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#080a18" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#dma-glow)">
+    <!-- 1. BODY BASE & CHEEK -->
+    <path d="M 38,72 C 34,68 33,58 35,48 C 37,38 45,30 55,28 C 65,26 73,30 78,38 C 76,48 71,58 64,65 C 56,73 45,75 38,72 Z" fill="url(#dma-ele-violet)"/>
+
+    <!-- 2. TRUNK (Rising Upward - Vector contour of aspiration & wisdom) -->
+    <path d="
+      M 73,34
+      C 80,40 84,50 82,60
+      C 80,68 82,75 88,74
+      C 93,73 95,66 93,57
+      C 92,52 93,48 95,47
+      C 97,46 99,50 98,56
+      C 96,69 88,80 79,78
+      C 72,76 72,67 74,58
+      C 76,49 76,42 70,36
+      C 67,33 63,31 58,30
+      C 63,28 68,29 73,34
+      Z
+    " fill="url(#dma-ele-violet)"/>
+
+    <!-- 3. TUSK (Brilliant Cyan Crescent - symbol of strength and intellect) -->
+    <path d="M 64,56 C 70,58 78,60 83,54 C 80,60 74,64 66,63 C 63,62 62,59 64,56 Z" fill="url(#dma-ele-cyan)"/>
+
+    <!-- 4. ICONIC EAR (Overlapping origami shield / open book page) -->
+    <path d="
+      M 45,26
+      C 32,24 20,34 17,47
+      C 14,62 23,76 38,80
+      C 47,82 53,76 54,66
+      C 55,54 53,42 49,34
+      C 48,30 46,27 45,26
+      Z
+    " fill="url(#dma-ele-ear)"/>
+
+    <!-- Ear inner contour line for geometric clarity -->
+    <path d="
+      M 40,33
+      C 31,32 23,39 21,50
+      C 19,61 26,71 36,73
+      C 43,74 47,69 48,61
+      C 49,52 47,44 44,38
+      C 43,35 41,33 40,33
+      Z
+    " fill="#ffffff" opacity="0.15"/>
+
+    <!-- 5. INTELLECT EYE (Spark of knowledge) -->
+    <circle cx="61" cy="37" r="2.8" fill="#ffffff"/>
+    <circle cx="61.8" cy="36.6" r="1.3" fill="#080a18"/>
+    <circle cx="60.6" cy="35.9" r="0.6" fill="#ffffff"/>
+
+    <!-- 6. KNOWLEDGE STAR SPARK -->
+    <path d="M 97,36 L 98.2,39.5 L 101.7,40.7 L 98.2,42 L 97,45.5 L 95.8,42 L 92.3,40.7 L 95.8,39.5 Z" fill="#67e2f9"/>
+  </g>
+</svg>

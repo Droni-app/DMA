@@ -1,19 +1,83 @@
 <template>
   <div>
     <!-- Hero -->
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-x-0 -top-40 -z-10 mx-auto h-96 max-w-3xl rounded-full bg-slate-200/60 blur-3xl dark:bg-slate-800/40" />
-      <div class="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:pt-24">
-        <DuiBadge label="Nuevo: simulacros Saber 11 con explicación" variant="soft" rounded="full" />
-        <h1 class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-6xl dark:text-white">
-          Refuerza el colegio y aprende <span class="text-slate-500 dark:text-slate-400">a tu ritmo</span>
-        </h1>
-        <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-          Cursos cortos y claros de matemáticas, lenguaje, ciencias e inglés para bachillerato, con ejercicios que se corrigen al instante y preparación para el Saber 11.
-        </p>
-        <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-          <DuiAction to="/registro" color="primary" size="lg">Empieza gratis</DuiAction>
-          <DuiAction to="/cursos" variant="outline" color="neutral" size="lg">Ver cursos</DuiAction>
+    <section class="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24">
+      <!-- Glow ambiental de fondo con los tonos oficiales de droni-kit -->
+      <div class="pointer-events-none absolute -top-40 right-0 -z-10 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl dark:bg-purple-900/30" />
+      <div class="pointer-events-none absolute top-20 left-1/4 -z-10 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl dark:bg-cyan-900/20" />
+
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
+          <!-- Textos y llamadas a la acción (Lado izquierdo) -->
+          <div class="text-left lg:col-span-7">
+            <div class="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3.5 py-1 text-xs font-semibold text-purple-700 dark:border-purple-800/70 dark:bg-purple-950/40 dark:text-purple-300">
+              <span class="size-2 rounded-full bg-cyan-400 animate-pulse" />
+              Nuevo: simulacros Saber 11 con explicación en tiempo real
+            </div>
+
+            <h1 class="mt-5 text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-white">
+              Refuerza el colegio y aprende <span class="bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent dark:from-purple-400 dark:via-indigo-300 dark:to-cyan-300">a tu ritmo</span>
+            </h1>
+
+            <p class="mt-5 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+              Cursos cortos y claros de matemáticas, lenguaje, ciencias e inglés para bachillerato, con ejercicios que se corrigen al instante y preparación integral para el Saber 11.
+            </p>
+
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <DuiAction to="/registro" color="primary" size="lg">Empieza gratis</DuiAction>
+              <DuiAction to="/cursos" variant="outline" color="neutral" size="lg">Explorar cursos</DuiAction>
+            </div>
+
+            <!-- Métricas / Puntos clave de valor integrados -->
+            <div class="mt-10 grid grid-cols-3 gap-6 border-t border-zinc-200/80 pt-6 dark:border-zinc-800">
+              <div>
+                <p class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">6° a 11°</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Bachillerato completo</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">100%</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Abierto y gratuito</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Saber 11</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Preguntas tipo ICFES</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ilustración de identidad visual integrada (Lado derecho) -->
+          <div class="relative lg:col-span-5">
+            <!-- Aura luminosa ambiental -->
+            <div class="absolute -inset-2 rounded-3xl bg-gradient-to-tr from-purple-600/30 via-cyan-500/20 to-pink-500/20 blur-2xl dark:from-purple-600/30 dark:via-cyan-500/25 dark:to-pink-600/20" />
+
+            <!-- Contenedor visual fluido sin borde de card rígido -->
+            <div class="relative overflow-hidden rounded-3xl shadow-2xl transition duration-500 hover:scale-[1.01]">
+              <picture>
+                <source srcset="/hero-banner.webp" type="image/webp">
+                <img
+                  src="/hero-banner.jpg"
+                  alt="DMA · Droni.co Modern Academy - Refuerzo escolar virtual y preparación Saber 11"
+                  class="aspect-4/3 sm:aspect-16/10 lg:aspect-square w-full object-cover object-right"
+                  loading="eager"
+                  width="1376"
+                  height="768"
+                >
+              </picture>
+              <!-- Sombra degradada para fusión armónica -->
+              <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent dark:from-zinc-950/60" />
+            </div>
+
+            <!-- Pill flotante interactivo integrado -->
+            <div class="absolute -bottom-3 -left-3 hidden rounded-xl border border-zinc-200/90 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur sm:flex sm:items-center sm:gap-3 dark:border-zinc-800 dark:bg-zinc-900/95">
+              <span class="grid size-8 place-items-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                <i class="mdi mdi-check-circle text-lg" aria-hidden="true" />
+              </span>
+              <div class="text-left">
+                <p class="text-xs font-semibold text-zinc-900 dark:text-white">Corrección en tiempo real</p>
+                <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Aprende al instante con explicaciones</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

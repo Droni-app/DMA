@@ -19,7 +19,7 @@ useHead({
         '@type': 'EducationalOrganization',
         name: 'DMA · Droni.co Modern Academy',
         url: appUrl,
-        logo: `${appUrl}/favicon.ico`,
+        logo: `${appUrl}/logo-512.png`,
         description: 'Plataforma de educación virtual para reforzar el bachillerato: cursos de 6° a 11° y preparación Saber 11.',
       }),
     },
