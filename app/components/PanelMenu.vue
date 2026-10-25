@@ -23,8 +23,7 @@ const emit = defineEmits<{ navigate: [] }>()
 const route = useRoute()
 
 const items = [
-  { label: 'Inicio', to: '/panel', icon: 'mdi mdi-view-dashboard-outline' },
-  { label: 'Mis cursos', to: '/panel/cursos', icon: 'mdi mdi-book-open-variant' },
+  { label: 'Mis cursos', to: '/panel', icon: 'mdi mdi-book-open-variant' },
   { label: 'Explorar cursos', to: '/cursos', icon: 'mdi mdi-compass-outline' },
   { label: 'Comunidad', to: '/comunidad', icon: 'mdi mdi-forum-outline' },
   { label: 'Mi perfil', to: '/panel/perfil', icon: 'mdi mdi-account-outline' },

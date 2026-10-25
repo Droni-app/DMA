@@ -2,7 +2,7 @@
   <div v-if="course" class="flex h-full flex-col">
     <!-- Curso y avance -->
     <div class="border-b border-zinc-200 p-5 dark:border-zinc-800">
-      <NuxtLink :to="user ? '/panel/cursos' : '/cursos'" class="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white" @click="emit('navigate')">
+      <NuxtLink :to="user ? '/panel' : '/cursos'" class="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white" @click="emit('navigate')">
         <i class="mdi mdi-arrow-left" aria-hidden="true" /> {{ user ? 'Mis cursos' : 'Todos los cursos' }}
       </NuxtLink>
       <div class="mt-4 flex items-center gap-3">

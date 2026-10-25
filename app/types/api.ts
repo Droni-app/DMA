@@ -23,6 +23,10 @@ export interface Course {
   enrollment?: LearnEnrollment | null
 }
 
+export interface MyLearningCourse extends Course {
+  enrollments: LearnEnrollment[]
+}
+
 export interface Lesson {
   id: string
   courseId: string
@@ -66,6 +70,7 @@ export interface LearnEnrollment {
   id: string
   progress: string
   status: string
+  role?: string
   lessonAnswers?: LessonAnswer[]
   quizzes?: LessonQuiz[]
 }
