@@ -30,13 +30,23 @@ export function renderContent(content: string | null, format = 'markdown') {
   let html: string
   if (format === 'html') {
     html = content
-  } else if (format === 'text') {
+  } else if (format === 'text' || format === 'plaintext') {
     const escaped = content.replace(/[&<>"']/g, character => htmlEntities[character] ?? character)
     html = `<p>${escaped.replace(/\r?\n/g, '<br>')}</p>`
   } else {
     html = marked.parse(content, { async: false }) as string
   }
   return sanitizeContent(html)
+}
+
+// Temas de la comunidad: los nuevos llegan en HTML (editor), los antiguos en texto plano
+export function renderRichText(content: string | null) {
+  return renderContent(content, /<\/?[a-z][^>]*>/i.test(content ?? '') ? 'html' : 'text')
+}
+
+// Texto sin etiquetas para resúmenes y meta descripciones
+export function plainText(content: string | null) {
+  return (content ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 // Minutos de lectura aproximados

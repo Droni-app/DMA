@@ -1,4 +1,5 @@
-// Tipos de la API (sources/api-1.json), solo con los campos que usa el front
+// Tipos de la API (https://droni.co/proyectos/appi), solo con los campos que usa el front.
+// Los booleanos llegan a veces como 1/0: se leen con isTrue().
 
 export interface Paginated<T> {
   meta: { total: number; perPage: number; currentPage: number; lastPage: number }
@@ -12,6 +13,9 @@ export interface User {
   avatar: string | null
 }
 
+export type CourseRole = 'student' | 'teacher' | 'admin'
+export type EnrollmentStatus = 'pending' | 'active' | 'completed' | 'canceled'
+
 export interface Course {
   id: string
   slug: string
@@ -20,6 +24,8 @@ export interface Course {
   description: string | null
   picture: string | null
   video: string | null
+  autoEnroll?: boolean | number
+  active?: boolean | number
   enrollment?: LearnEnrollment | null
 }
 
@@ -43,7 +49,7 @@ export interface Lesson {
 }
 
 export interface CompletedLesson extends Omit<Lesson, 'courseId'> {
-  course: Pick<Course, 'id' | 'slug'>
+  course: Pick<Course, 'id' | 'slug' | 'name' | 'group'>
 }
 
 export interface Question {
@@ -79,23 +85,37 @@ export interface LessonQuestionLink {
 export interface LessonAnswer {
   id: string
   lessonId: string
+  userId?: string
   answer: string
+  attachment?: string | null
   feedback: string | null
-  result: string | null
+  result: string | number | null
+  createdAt?: string
+  user?: User
 }
 
 export interface LessonQuiz {
   id: string
   lessonId: string
+  userId?: string
   status: string
-  results: string | null
+  results: string | number | null
+  // JSON serializado: [{ question_id, selected, correct }]
+  answers?: string | null
+  createdAt?: string
+  user?: User
 }
 
 export interface LearnEnrollment {
   id: string
-  progress: string
-  status: string
-  role?: string
+  courseId?: string
+  userId?: string
+  progress: string | number
+  status: EnrollmentStatus | string
+  role?: CourseRole | string
+  createdAt?: string
+  user?: User
+  course?: Course
   lessonAnswers?: LessonAnswer[]
   quizzes?: LessonQuiz[]
 }
@@ -107,6 +127,15 @@ export interface LessonDetail extends Lesson {
   quizQuestions: (Question | { question: Question })[]
 }
 
+export interface Attachment {
+  id: string
+  name: string
+  size: number
+  mime: string
+  url: string
+  createdAt: string
+}
+
 export interface Post {
   id: string
   slug: string
@@ -115,8 +144,22 @@ export interface Post {
   tags: string[] | null
   picture: string | null
   content: string | null
+  format?: string
+  active?: boolean | number
   createdAt: string
   user?: User
+}
+
+export interface Comment {
+  id: string
+  content: string
+  parentId: string | null
+  isEdited?: boolean
+  active?: boolean | number
+  createdAt: string
+  commentableId?: string
+  user?: User
+  children?: Comment[]
 }
 
 export interface Topic {
@@ -125,6 +168,7 @@ export interface Topic {
   name: string
   group: string | null
   content: string
+  active?: boolean | number
   createdAt: string
   user?: User
 }

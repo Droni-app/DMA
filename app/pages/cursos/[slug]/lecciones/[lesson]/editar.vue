@@ -36,7 +36,7 @@
         <DuiInput v-model="form.video" type="url" placeholder="https://…" block />
       </DuiLabel>
 
-      <DuiLabel title="Fecha límite de actividad (opcional)">
+      <DuiLabel title="Fecha límite (opcional)" help-text="Aplica a la actividad y al cuestionario.">
         <DuiInput v-model="form.limitDate" type="datetime-local" block />
       </DuiLabel>
 
@@ -47,6 +47,9 @@
       <div class="flex flex-wrap gap-3">
         <DuiButton type="submit" color="primary" :loading="saving">Guardar cambios</DuiButton>
         <DuiAction :to="`/cursos/${slug}/${lesson?.slug}`" variant="outline" color="neutral">Cancelar</DuiAction>
+        <DuiButton v-if="isAdmin" type="button" variant="ghost" color="danger" class="sm:ml-auto" :loading="deleting" @click="deleteLesson">
+          <i class="mdi mdi-delete-outline mr-1" aria-hidden="true" /> Eliminar lección
+        </DuiButton>
       </div>
     </DuiForm>
 
@@ -68,8 +71,8 @@
           <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
             <tr>
               <th scope="col" class="px-4 py-3 font-semibold">Pregunta</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold">Wons</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold">Losses</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold">Aciertos</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold">Fallos</th>
               <th scope="col" class="px-4 py-3 text-right font-semibold">Dificultad</th>
               <th scope="col" class="px-4 py-3 text-right font-semibold">Acciones</th>
             </tr>
@@ -79,9 +82,9 @@
               <td class="px-4 py-4">
                 <div class="reading text-base" v-html="renderContent(link.question.name, 'html')" />
               </td>
-              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ metric(link.question.wons) }}</td>
-              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ metric(link.question.losses) }}</td>
-              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ difficulty(link.question) }}</td>
+              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionStat(link.question.wons) }}</td>
+              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionStat(link.question.losses) }}</td>
+              <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionDifficulty(link.question) }}</td>
               <td class="px-4 py-4">
                 <div class="flex justify-end">
                   <DuiButton
@@ -132,12 +135,12 @@ definePageMeta({ layout: 'course' })
 const route = useRoute()
 const slug = String(route.params.slug)
 const lessonSlug = String(route.params.lesson)
-const { course, lessons, enrollment, refreshLessons } = await useCourse(slug)
+const { course, role, canManage, refreshLessons } = await useCourse(slug)
 const { data: lesson } = await useApi<LessonDetail>(`/learn/courses/${slug}/lessons/${lessonSlug}`)
 
 if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado', fatal: true })
 if (!lesson.value) throw createError({ statusCode: 404, statusMessage: 'Lección no encontrada', fatal: true })
-if (!['teacher', 'admin'].includes(enrollment.value?.role ?? '')) {
+if (!canManage.value) {
   throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para editar lecciones en este curso', fatal: true })
 }
 const lessonPath = `/learn/courses/${slug}/lessons/${lessonSlug}`
@@ -152,7 +155,9 @@ const [
 useSeo({ title: `Editar ${lesson.value.name} · ${course.value.name}`, description: 'Editar una lección del curso.', noindex: true })
 
 const toast = useToast()
+const isAdmin = role.value === 'admin'
 const saving = ref(false)
+const deleting = ref(false)
 const error = ref('')
 const linking = ref(false)
 const unlinkingId = ref('')
@@ -171,7 +176,7 @@ const form = reactive({
   activity: lesson.value.activity ?? '',
   video: lesson.value.video ?? '',
   order: lesson.value.order,
-  active: isLessonActive(lesson.value.active),
+  active: isTrue(lesson.value.active),
   limitDate: toDateTimeLocal(lesson.value.limitDate),
 })
 const questionLinks = computed(() => questionLinkData.value ?? [])
@@ -180,34 +185,6 @@ const availableQuestions = computed(() => (questionBank.value?.data ?? []).filte
 const questionError = computed(() => questionActionError.value
   || (questionLinksRequestError.value ? apiError(questionLinksRequestError.value, 'No pudimos cargar las preguntas de esta lección.') : '')
   || (questionBankRequestError.value ? apiError(questionBankRequestError.value, 'No pudimos cargar el banco de preguntas.') : ''))
-
-function metric(value: number | string | undefined) {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : 0
-}
-
-function difficulty(question: Question) {
-  if (question.difficulty != null && Number.isFinite(Number(question.difficulty))) {
-    return `${Number(question.difficulty).toFixed(1)}%`
-  }
-
-  const wons = metric(question.wons)
-  const losses = metric(question.losses)
-  const attempts = wons + losses
-  return attempts ? `${((losses / attempts) * 100).toFixed(1)}%` : '—'
-}
-
-function isLessonActive(value: LessonDetail['active']) {
-  return value === true || value === 1 || value === '1' || value === 'true'
-}
-
-function toDateTimeLocal(value: string | null | undefined) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-  return localDate.toISOString().slice(0, 16)
-}
 
 async function linkQuestion() {
   if (!selectedQuestionId.value) return
@@ -260,7 +237,7 @@ async function updateLesson() {
         video: form.video || null,
         order: form.order,
         active: form.active,
-        limit_date: form.limitDate ? new Date(form.limitDate).toISOString() : null,
+        limit_date: fromDateTimeLocal(form.limitDate),
       },
     })
     await refreshLessons()
@@ -270,6 +247,21 @@ async function updateLesson() {
     error.value = apiError(e, 'No pudimos guardar los cambios. Intenta de nuevo.')
   } finally {
     saving.value = false
+  }
+}
+
+async function deleteLesson() {
+  if (!window.confirm(`¿Eliminar la lección «${lesson.value?.name}»? Se perderán sus entregas y no se puede deshacer.`)) return
+  deleting.value = true
+  try {
+    await apiFetch(lessonPath, { method: 'DELETE' })
+    await refreshLessons()
+    toast.success('La lección fue eliminada.')
+    await navigateTo(`/cursos/${slug}`)
+  } catch (e) {
+    toast.error(apiError(e, 'No pudimos eliminar la lección.'))
+  } finally {
+    deleting.value = false
   }
 }
 </script>

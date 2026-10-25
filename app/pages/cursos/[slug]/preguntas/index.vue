@@ -23,8 +23,8 @@
         <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
           <tr>
             <th scope="col" class="px-4 py-3 font-semibold">Pregunta</th>
-            <th scope="col" class="px-4 py-3 text-right font-semibold">Wons</th>
-            <th scope="col" class="px-4 py-3 text-right font-semibold">Losses</th>
+            <th scope="col" class="px-4 py-3 text-right font-semibold">Aciertos</th>
+            <th scope="col" class="px-4 py-3 text-right font-semibold">Fallos</th>
             <th scope="col" class="px-4 py-3 text-right font-semibold">Dificultad</th>
             <th scope="col" class="px-4 py-3 text-right font-semibold">Acciones</th>
           </tr>
@@ -34,9 +34,9 @@
             <td class="px-4 py-4">
               <div class="reading text-base" v-html="renderContent(question.name, 'html')" />
             </td>
-            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ metric(question.wons) }}</td>
-            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ metric(question.losses) }}</td>
-            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ difficulty(question) }}</td>
+            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionStat(question.wons) }}</td>
+            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionStat(question.losses) }}</td>
+            <td class="px-4 py-4 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{{ questionDifficulty(question) }}</td>
             <td class="px-4 py-4">
               <div class="flex justify-end gap-2">
                 <DuiAction :to="`/cursos/${slug}/preguntas/${question.id}/editar`" variant="outline" color="neutral" size="sm">
@@ -71,37 +71,20 @@ definePageMeta({ layout: 'course' })
 
 const route = useRoute()
 const slug = String(route.params.slug)
-const { course, enrollment } = await useCourse(slug)
+const { course, role, canManage } = await useCourse(slug)
 
 if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado', fatal: true })
-const role = enrollment.value?.role
-if (role !== 'teacher' && role !== 'admin') {
+if (!canManage.value) {
   throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para gestionar preguntas en este curso', fatal: true })
 }
 
 useSeo({ title: `Banco de preguntas · ${course.value.name}`, description: 'Gestiona las preguntas del curso.', noindex: true })
 
-const isAdmin = role === 'admin'
+const isAdmin = role.value === 'admin'
 const toast = useToast()
 const { data: questions, refresh, error: requestError } = await useApi<Paginated<Question>>(`/learn/courses/${slug}/questions?per_page=100`)
 const loadError = computed(() => requestError.value ? apiError(requestError.value, 'No pudimos cargar las preguntas.') : '')
 const deletingId = ref('')
-
-function metric(value: number | string | undefined) {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : 0
-}
-
-function difficulty(question: Question) {
-  if (question.difficulty != null && Number.isFinite(Number(question.difficulty))) {
-    return `${Number(question.difficulty).toFixed(1)}%`
-  }
-
-  const wons = metric(question.wons)
-  const losses = metric(question.losses)
-  const attempts = wons + losses
-  return attempts ? `${((losses / attempts) * 100).toFixed(1)}%` : '—'
-}
 
 async function deleteQuestion(question: Question) {
   if (!window.confirm(`¿Eliminar la pregunta «${question.name}»? Esta acción no se puede deshacer.`)) return

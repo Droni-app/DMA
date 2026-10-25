@@ -7,6 +7,11 @@
     />
 
     <div class="mx-auto max-w-6xl px-4 py-12">
+      <form class="mb-8 flex flex-wrap items-center gap-3" role="search" @submit.prevent="applySearch">
+        <DuiInput v-model="search" type="search" placeholder="Buscar artículos…" aria-label="Buscar artículos" class="min-w-0 flex-1" block />
+        <DuiBadge v-if="tag" :label="`#${tag} ✕`" variant="soft" class="cursor-pointer" @click="navigateTo({ query: {} })" />
+      </form>
+
       <div v-if="posts?.data.length" class="grid gap-6 md:grid-cols-2">
         <DuiCard v-for="post in posts.data" :key="post.id" :to="`/blog/${post.slug}`" size="l" class="block h-full">
           <div class="space-y-3">
@@ -22,6 +27,7 @@
           </div>
         </DuiCard>
       </div>
+      <EmptyState v-else-if="q || tag" icon="mdi mdi-magnify-close" title="No encontramos artículos" text="Prueba con otra búsqueda." />
       <EmptyState v-else icon="mdi mdi-post-outline" title="Aún no hay artículos" text="Muy pronto publicaremos consejos y guías de estudio." />
 
       <DuiPagination
@@ -43,6 +49,21 @@ useSeo({
   description: 'Artículos con técnicas de estudio, consejos para el Saber 11 y recursos de matemáticas, lenguaje, ciencias e inglés para bachillerato.',
 })
 
+const route = useRoute()
 const page = ref(1)
-const { data: posts } = await useApi<Paginated<Post>>(() => `/content/posts?page=${page.value}`)
+const search = ref('')
+const q = ref('')
+const tag = computed(() => String(route.query.tag ?? ''))
+watch(tag, () => (page.value = 1))
+const { data: posts } = await useApi<Paginated<Post>>(() => {
+  const query = new URLSearchParams({ per_page: '10', page: String(page.value) })
+  if (q.value) query.set('q', q.value)
+  if (tag.value) query.set('tags', tag.value)
+  return `/content/posts?${query}`
+})
+
+function applySearch() {
+  page.value = 1
+  q.value = search.value.trim()
+}
 </script>

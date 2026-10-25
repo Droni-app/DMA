@@ -4,12 +4,13 @@ interface SeoOptions {
   description: string
   type?: 'website' | 'article'
   noindex?: boolean
+  image?: string | null
 }
 
-export function useSeo({ title, description, type = 'website', noindex = false }: SeoOptions) {
+export function useSeo({ title, description, type = 'website', noindex = false, image: picture }: SeoOptions) {
   const route = useRoute()
   const url = useRuntimeConfig().public.appUrl + route.path
-  const image = useRuntimeConfig().public.appUrl + '/og.png'
+  const image = picture || useRuntimeConfig().public.appUrl + '/og.png'
 
   useSeoMeta({
     title,

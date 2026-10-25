@@ -8,13 +8,14 @@
 import { useToast } from '@dronico/droni-kit'
 
 const { loginWithGoogle } = useAuth()
+const route = useRoute()
 const toast = useToast()
 const loading = ref(false)
 
 async function start() {
   loading.value = true
   try {
-    await loginWithGoogle()
+    await loginWithGoogle(safeRedirect(route.query.redirect))
   } catch (error) {
     toast.error(apiError(error, 'No pudimos conectar con Google.'))
     loading.value = false

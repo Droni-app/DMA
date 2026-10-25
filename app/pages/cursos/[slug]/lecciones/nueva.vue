@@ -34,9 +34,11 @@
         <DuiInput v-model="form.video" type="url" placeholder="https://…" block />
       </DuiLabel>
 
-      <DuiLabel title="Fecha límite de actividad (opcional)">
+      <DuiLabel title="Fecha límite (opcional)" help-text="Aplica a la actividad y al cuestionario.">
         <DuiInput v-model="form.limitDate" type="datetime-local" block />
       </DuiLabel>
+
+      <DuiSwitch v-model="form.active" label="Lección visible" description="Si está desactivada, solo los docentes la verán." />
 
       <DuiAlert v-if="error" color="danger" variant="outline">{{ error }}</DuiAlert>
 
@@ -55,10 +57,10 @@ definePageMeta({ layout: 'course' })
 
 const route = useRoute()
 const slug = String(route.params.slug)
-const { course, lessons, enrollment, refreshLessons } = await useCourse(slug)
+const { course, lessons, canManage, refreshLessons } = await useCourse(slug)
 
 if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado', fatal: true })
-if (!['teacher', 'admin'].includes(enrollment.value?.role ?? '')) {
+if (!canManage.value) {
   throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para crear lecciones en este curso', fatal: true })
 }
 
@@ -81,6 +83,7 @@ const form = reactive({
   activity: '',
   video: '',
   limitDate: '',
+  active: true,
 })
 
 async function createLesson() {
@@ -98,8 +101,8 @@ async function createLesson() {
         activity: form.activity || null,
         video: form.video || null,
         order: form.order,
-        active: true,
-        limit_date: form.limitDate ? new Date(form.limitDate).toISOString() : null,
+        active: form.active,
+        limit_date: fromDateTimeLocal(form.limitDate),
       },
     })
     await refreshLessons()

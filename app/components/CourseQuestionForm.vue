@@ -70,10 +70,10 @@ import type { Question } from '~/types/api'
 const props = defineProps<{ questionId?: string }>()
 const route = useRoute()
 const slug = String(route.params.slug)
-const { course, enrollment } = await useCourse(slug)
+const { course, canManage } = await useCourse(slug)
 
 if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado', fatal: true })
-if (!['teacher', 'admin'].includes(enrollment.value?.role ?? '')) {
+if (!canManage.value) {
   throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para gestionar preguntas en este curso', fatal: true })
 }
 

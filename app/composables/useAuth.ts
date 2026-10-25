@@ -1,5 +1,11 @@
 import type { User } from '~/types/api'
 
+interface Session {
+  token?: string
+  user: User
+  enrollment?: { id: string; role: string } | null
+}
+
 // Sesión contra el backend. El token se guarda en la cookie que el bypass /api/appi envía como Bearer.
 export function useAuth() {
   const token = useCookie<string | null>('appi_session_token', {
@@ -8,26 +14,34 @@ export function useAuth() {
     secure: !import.meta.dev,
   })
   const user = useState<User | null>('user', () => null)
+  // Rol en el sitio: 'user' u 'owner' (el owner administra cursos, blog y comunidad)
+  const siteRole = useState<string | null>('site-role', () => null)
+  const isOwner = computed(() => siteRole.value === 'owner')
   const requestFetch = useRequestFetch()
 
   async function fetchUser() {
     if (!token.value) return (user.value = null)
     try {
-      const res = await requestFetch<{ user: User }>('/api/appi/auth/me')
-      user.value = res.user
+      setSession(await requestFetch<Session>('/api/appi/auth/me'))
     } catch {
-      user.value = null
-      token.value = null
+      clearSession()
     }
   }
 
-  function setSession(res: { token: string; user: User }) {
-    token.value = res.token
+  function setSession(res: Session) {
+    if (res.token) token.value = res.token
     user.value = res.user
+    siteRole.value = res.enrollment?.role ?? null
+  }
+
+  function clearSession() {
+    token.value = null
+    user.value = null
+    siteRole.value = null
   }
 
   async function login(email: string, password: string) {
-    setSession(await apiFetch<{ token: string; user: User }>('/auth/login', { method: 'POST', body: { email, password } }))
+    setSession(await apiFetch<Session>('/auth/login', { method: 'POST', body: { email, password } }))
   }
 
   // El backend pide verificar el correo antes del primer ingreso
@@ -44,15 +58,17 @@ export function useAuth() {
     return new URL('/oauth/google/callback', config.public.appUrl).toString()
   }
 
-  async function loginWithGoogle() {
+  // La página a la que volver se guarda mientras el usuario pasa por Google
+  async function loginWithGoogle(redirect?: string) {
     const { url } = await apiFetch<{ url: string }>('/auth/google/url', {
       query: { callbackUrl: googleCallbackUrl() },
     })
+    if (redirect) sessionStorage.setItem('login-redirect', redirect)
     window.location.href = url
   }
 
   async function handleGoogleCallback(code: string) {
-    const session = await apiFetch<{ token: string; user: User }>('/auth/google/handle', {
+    const session = await apiFetch<Session>('/auth/google/handle', {
       query: {
         code,
         callbackUrl: googleCallbackUrl(),
@@ -63,10 +79,9 @@ export function useAuth() {
 
   async function logout() {
     await apiFetch('/auth/logout', { method: 'POST' }).catch(() => {})
-    token.value = null
-    user.value = null
+    clearSession()
     await navigateTo('/')
   }
 
-  return { user, fetchUser, setSession, login, register, sendVerification, loginWithGoogle, handleGoogleCallback, logout }
+  return { user, isOwner, fetchUser, setSession, login, register, sendVerification, loginWithGoogle, handleGoogleCallback, logout }
 }

@@ -1,6 +1,7 @@
 <template>
   <div v-if="course">
-    <LessonVideo :src="course.video" :title="course.name" :group="course.group" />
+    <LessonVideo v-if="course.video" :src="course.video" :title="course.name" :group="course.group" />
+    <CourseCover v-else :group="course.group" :picture="course.picture" class="h-40 w-full !rounded-none sm:h-56" />
 
     <div class="mx-auto max-w-5xl px-4 py-10 sm:px-8">
       <div class="grid gap-10 lg:grid-cols-[1fr_320px]">
@@ -24,39 +25,51 @@
             <li v-for="(lesson, i) in lessons" :key="lesson.id">
               <NuxtLink :to="`/cursos/${slug}/${lesson.slug}`" class="flex items-center gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900">
                 <i
-                  v-if="enrollment"
+                  v-if="isStudent"
                   class="text-2xl"
                   :class="isDone(lesson) ? 'mdi mdi-check-circle text-emerald-500' : 'mdi mdi-circle-outline text-zinc-300 dark:text-zinc-600'"
                   aria-hidden="true"
                 />
                 <span v-else class="grid size-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-sm font-semibold dark:bg-zinc-800">{{ i + 1 }}</span>
                 <span class="flex-1">
-                  <span class="block font-medium text-zinc-900 dark:text-white">{{ lesson.name }}</span>
+                  <span class="block font-medium text-zinc-900 dark:text-white">
+                    {{ lesson.name }}
+                    <DuiBadge v-if="!isTrue(lesson.active)" label="Oculta" color="warning" variant="soft" size="xs" class="ml-1" />
+                  </span>
                   <span v-if="lesson.description" class="block text-sm text-zinc-500">{{ lesson.description }}</span>
                 </span>
-                <DuiBadge v-if="enrollment && isDone(lesson)" label="Completada" color="success" variant="soft" size="sm" />
-                <DuiBadge v-else-if="enrollment && lesson.id === next?.id" label="Siguiente" variant="soft" size="sm" />
+                <DuiBadge v-if="isStudent && isDone(lesson)" label="Vista" color="success" variant="soft" size="sm" />
+                <DuiBadge v-else-if="isStudent && lesson.id === next?.id" label="Siguiente" variant="soft" size="sm" />
                 <i v-else-if="lesson.video" class="mdi mdi-play-circle-outline text-xl text-zinc-400" title="Incluye video" />
                 <i class="mdi mdi-chevron-right text-xl text-zinc-400" aria-hidden="true" />
               </NuxtLink>
             </li>
           </ol>
           <EmptyState v-else class="mt-4" icon="mdi mdi-book-clock-outline" title="Las lecciones llegarán pronto" />
-          <DuiAction
-            v-if="canManageLessons"
-            :to="`/cursos/${slug}/lecciones/nueva`"
-            variant="outline"
-            color="neutral"
-            class="mt-4"
-          >
-            <i class="mdi mdi-plus-circle-outline mr-1" aria-hidden="true" /> Crear nueva lección
-          </DuiAction>
+
         </div>
 
         <!-- Avance / llamado a la acción -->
         <aside>
           <div class="rounded-2xl border border-zinc-200 p-6 lg:sticky lg:top-20 dark:border-zinc-800">
-            <template v-if="enrollment">
+            <!-- Docentes y administradores del curso -->
+            <template v-if="canManage">
+              <DuiBadge :label="roleLabels[role] ?? role" variant="soft" />
+              <h2 class="mt-3 font-semibold text-zinc-900 dark:text-white">Gestiona este curso</h2>
+              <div class="mt-4 grid gap-2">
+                <DuiAction :to="`/cursos/${slug}/lecciones/nueva`" variant="outline" color="neutral" block>
+                  <i class="mdi mdi-plus-circle-outline mr-1" aria-hidden="true" /> Nueva lección
+                </DuiAction>
+                <DuiAction :to="`/cursos/${slug}/preguntas`" variant="outline" color="neutral" block>
+                  <i class="mdi mdi-help-circle-outline mr-1" aria-hidden="true" /> Banco de preguntas
+                </DuiAction>
+                <DuiAction :to="`/cursos/${slug}/estudiantes`" variant="outline" color="neutral" block>
+                  <i class="mdi mdi-account-group-outline mr-1" aria-hidden="true" /> Estudiantes
+                </DuiAction>
+              </div>
+            </template>
+
+            <template v-else-if="enrollment">
               <h2 class="font-semibold text-zinc-900 dark:text-white">Tu avance</h2>
               <p class="mt-4 text-4xl font-extrabold text-zinc-900 dark:text-white">{{ percent }}%</p>
               <ProgressBar :value="percent" class="mt-3" />
@@ -75,12 +88,17 @@
                 {{ user ? 'Inscríbete para guardar tu avance y enviar actividades.' : 'Crea tu cuenta para guardar tu avance y enviar actividades.' }}
               </p>
               <DuiAlert v-if="error" color="danger" variant="outline" class="mt-4">{{ error }}</DuiAlert>
-              <DuiButton v-if="user" variant="outline" color="neutral" block class="mt-5" :loading="enrolling" @click="join">Inscribirme</DuiButton>
+              <template v-if="user">
+                <DuiButton v-if="autoEnroll" color="primary" block class="mt-5" :loading="enrolling" @click="join">Inscribirme gratis</DuiButton>
+                <DuiAlert v-else color="neutral" variant="outline" class="mt-5">
+                  La inscripción a este curso la hace tu docente o institución.
+                </DuiAlert>
+              </template>
               <DuiAction v-else :to="{ path: '/registro', query: { redirect: route.path } }" variant="outline" color="neutral" block class="mt-5">Crear cuenta gratis</DuiAction>
             </template>
 
-            <DuiAction v-if="next" :to="`/cursos/${slug}/${next.slug}`" color="primary" size="lg" block class="mt-3">
-              {{ percent === 100 ? 'Repasar el curso' : doneCount ? 'Continuar' : 'Comenzar curso' }}
+            <DuiAction v-if="next" :to="`/cursos/${slug}/${next.slug}`" :color="enrollment || !user || !autoEnroll ? 'primary' : 'neutral'" :variant="enrollment || !user || !autoEnroll ? 'solid' : 'outline'" size="lg" block class="mt-3">
+              {{ canManage ? 'Ver lecciones' : percent === 100 ? 'Repasar el curso' : doneCount ? 'Continuar' : enrollment ? 'Comenzar curso' : 'Ver lecciones' }}
             </DuiAction>
           </div>
         </aside>
@@ -96,16 +114,18 @@ definePageMeta({ layout: 'course' })
 
 const route = useRoute()
 const slug = String(route.params.slug)
-const { course, lessons, enrollment, isDone, doneCount, percent, next, enroll } = await useCourse(slug)
+const { course, lessons, enrollment, role, canManage, isDone, doneCount, percent, next, enroll } = await useCourse(slug)
 if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado', fatal: true })
 
 const info = computed(() => parseGroup(course.value!.group))
 const { user } = useAuth()
-const canManageLessons = computed(() => ['teacher', 'admin'].includes(enrollment.value?.role ?? ''))
+const autoEnroll = computed(() => isTrue(course.value?.autoEnroll))
+const isStudent = computed(() => role.value === 'student')
 
 useSeo({
   title: `${course.value.name} · ${info.value.subject}${info.value.grade ? ` grado ${info.value.grade}` : ''}`,
   description: (course.value.description ?? '').slice(0, 160),
+  image: course.value.picture,
 })
 
 useHead({

@@ -12,7 +12,7 @@
           <h2 class="font-semibold leading-snug text-zinc-900 dark:text-white">{{ course.name }}</h2>
         </div>
       </div>
-      <div v-if="enrollment" class="mt-5">
+      <div v-if="enrollment && !canManage" class="mt-5">
         <div class="mb-2 flex justify-between text-sm">
           <span class="text-zinc-600 dark:text-zinc-400">Tu avance</span>
           <span class="font-semibold text-zinc-900 dark:text-white">{{ percent }}%</span>
@@ -58,9 +58,11 @@
             />
             <span class="flex-1">
               <span class="block">{{ index + 1 }}. {{ lesson.name }}</span>
-              <span class="mt-0.5 flex gap-2 text-xs text-zinc-500">
+              <span class="mt-0.5 flex flex-wrap gap-2 text-xs text-zinc-500">
+                <span v-if="!isTrue(lesson.active)" class="font-medium text-amber-600 dark:text-amber-400"><i class="mdi mdi-eye-off-outline" aria-hidden="true" /> Oculta</span>
                 <span v-if="lesson.video"><i class="mdi mdi-play-circle-outline" aria-hidden="true" /> Video</span>
                 <span v-if="lesson.activity"><i class="mdi mdi-pencil-outline" aria-hidden="true" /> Actividad</span>
+                <span v-if="lesson.limitDate"><i class="mdi mdi-calendar-clock" aria-hidden="true" /> {{ formatDate(lesson.limitDate) }}</span>
               </span>
             </span>
           </NuxtLink>
@@ -69,25 +71,22 @@
       <p v-if="lessonSearch.trim() && !filteredLessons.length" class="px-3 py-3 text-sm text-zinc-500">
         No se encontraron lecciones.
       </p>
-      <NuxtLink
-        v-if="canManageLessons"
-        :to="`${base}/lecciones/nueva`"
-        class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-800"
-        @click="emit('navigate')"
-      >
-        <i class="mdi mdi-plus-circle-outline text-lg" aria-hidden="true" />
-        Crear nueva lección
-      </NuxtLink>
-      <NuxtLink
-        v-if="canManageLessons"
-        :to="`${base}/preguntas`"
-        class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-800"
-        :class="linkClass(route.path === `${base}/preguntas`)"
-        @click="emit('navigate')"
-      >
-        <i class="mdi mdi-help-circle-outline text-lg" aria-hidden="true" />
-        Banco de preguntas
-      </NuxtLink>
+      <!-- Herramientas del docente -->
+      <template v-if="canManage">
+        <h3 class="mt-6 px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Gestión del curso</h3>
+        <ul class="mt-2 space-y-0.5">
+          <li v-for="tool in tools" :key="tool.to">
+            <NuxtLink
+              :to="tool.to"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm"
+              :class="linkClass(route.path === tool.to)"
+              @click="emit('navigate')"
+            >
+              <i :class="tool.icon" class="text-lg" aria-hidden="true" /> {{ tool.label }}
+            </NuxtLink>
+          </li>
+        </ul>
+      </template>
 
       <!-- Recursos del curso -->
       <template v-if="course.video">
@@ -105,10 +104,14 @@ const props = defineProps<{ slug: string }>()
 const emit = defineEmits<{ navigate: [] }>()
 
 const route = useRoute()
-const { course, lessons, enrollment, isDone, doneCount, percent } = await useCourse(props.slug)
+const { course, lessons, enrollment, canManage, isDone, doneCount, percent } = await useCourse(props.slug)
 const base = `/cursos/${props.slug}`
 const { user } = useAuth()
-const canManageLessons = computed(() => ['teacher', 'admin'].includes(enrollment.value?.role ?? ''))
+const tools = [
+  { label: 'Crear nueva lección', to: `${base}/lecciones/nueva`, icon: 'mdi mdi-plus-circle-outline' },
+  { label: 'Banco de preguntas', to: `${base}/preguntas`, icon: 'mdi mdi-help-circle-outline' },
+  { label: 'Estudiantes', to: `${base}/estudiantes`, icon: 'mdi mdi-account-group-outline' },
+]
 const lessonSearch = ref('')
 const filteredLessons = computed(() => {
   const search = lessonSearch.value.trim().toLocaleLowerCase()

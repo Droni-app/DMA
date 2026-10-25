@@ -27,6 +27,9 @@ body {
 .reading {
   @apply max-w-prose text-lg leading-8 text-zinc-700 dark:text-zinc-300;
 }
+.reading h1 {
+  @apply mt-10 mb-5 text-3xl font-bold text-zinc-900 first:mt-0 dark:text-white;
+}
 .reading h2 {
   @apply mt-10 mb-4 text-2xl font-bold text-zinc-900 dark:text-white;
 }
@@ -65,4 +68,19 @@ body {
 }
 .reading code {
   @apply rounded bg-zinc-100 px-1.5 py-0.5 text-base dark:bg-zinc-800;
+}
+.reading pre {
+  @apply mb-6 overflow-x-auto rounded-xl bg-zinc-900 p-4 text-sm leading-6 text-zinc-100 dark:bg-black;
+}
+.reading pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+.reading a {
+  @apply font-medium text-purple-700 underline underline-offset-2 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200;
+}
+.reading hr {
+  @apply my-10 border-zinc-200 dark:border-zinc-800;
+}
+.reading > :last-child {
+  @apply mb-0;
 }

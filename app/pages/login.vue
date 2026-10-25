@@ -40,7 +40,9 @@ definePageMeta({ layout: 'auth' })
 useSeo({ title: 'Ingresar', description: 'Ingresa a tu cuenta de DMA para continuar con tus cursos.', noindex: true })
 
 const route = useRoute()
-const { login, sendVerification } = useAuth()
+const { user, login, sendVerification } = useAuth()
+if (user.value) await navigateTo(safeRedirect(route.query.redirect))
+
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -54,7 +56,7 @@ async function submit() {
   sent.value = false
   try {
     await login(email.value, password.value)
-    await navigateTo(String(route.query.redirect ?? '/panel'))
+    await navigateTo(safeRedirect(route.query.redirect))
   } catch (e: any) {
     error.value = apiError(e)
     unverified.value = (e?.data?.data?.message ?? '') === 'Email not verified.'

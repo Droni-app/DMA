@@ -29,7 +29,9 @@ onMounted(async () => {
 
   try {
     await handleGoogleCallback(code)
-    await navigateTo('/panel')
+    const redirect = safeRedirect(sessionStorage.getItem('login-redirect'))
+    sessionStorage.removeItem('login-redirect')
+    await navigateTo(redirect)
   } catch (e) {
     error.value = apiError(e)
   }
