@@ -39,9 +39,26 @@ export function useAuth() {
     await apiFetch('/auth/send-verification-email', { method: 'POST', body: { email } })
   }
 
+  function googleCallbackUrl() {
+    const config = useRuntimeConfig()
+    return new URL('/oauth/google/callback', config.public.appUrl).toString()
+  }
+
   async function loginWithGoogle() {
-    const { url } = await apiFetch<{ url: string }>('/auth/google/url')
+    const { url } = await apiFetch<{ url: string }>('/auth/google/url', {
+      query: { callbackUrl: googleCallbackUrl() },
+    })
     window.location.href = url
+  }
+
+  async function handleGoogleCallback(code: string) {
+    const session = await apiFetch<{ token: string; user: User }>('/auth/google/handle', {
+      query: {
+        code,
+        callbackUrl: googleCallbackUrl(),
+      },
+    })
+    setSession(session)
   }
 
   async function logout() {
@@ -51,5 +68,5 @@ export function useAuth() {
     await navigateTo('/')
   }
 
-  return { user, fetchUser, setSession, login, register, sendVerification, loginWithGoogle, logout }
+  return { user, fetchUser, setSession, login, register, sendVerification, loginWithGoogle, handleGoogleCallback, logout }
 }
