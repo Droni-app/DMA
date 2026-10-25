@@ -33,8 +33,18 @@
       </NuxtLink>
 
       <h3 class="mt-5 px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Lecciones</h3>
+      <label class="relative mt-2 block px-1">
+        <span class="sr-only">Buscar lecciones</span>
+        <i class="mdi mdi-magnify absolute left-3 top-1/2 -translate-y-1/2 text-lg text-zinc-400" aria-hidden="true" />
+        <input
+          v-model="lessonSearch"
+          type="search"
+          placeholder="Buscar lecciones..."
+          class="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:ring-zinc-700"
+        >
+      </label>
       <ol class="mt-2 space-y-0.5">
-        <li v-for="(lesson, i) in lessons" :key="lesson.id">
+        <li v-for="{ lesson, index } in filteredLessons" :key="lesson.id">
           <NuxtLink
             :to="`${base}/${lesson.slug}`"
             class="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm"
@@ -47,7 +57,7 @@
               :aria-label="isDone(lesson) ? 'Completada' : 'Pendiente'"
             />
             <span class="flex-1">
-              <span class="block">{{ i + 1 }}. {{ lesson.name }}</span>
+              <span class="block">{{ index + 1 }}. {{ lesson.name }}</span>
               <span class="mt-0.5 flex gap-2 text-xs text-zinc-500">
                 <span v-if="lesson.video"><i class="mdi mdi-play-circle-outline" aria-hidden="true" /> Video</span>
                 <span v-if="lesson.activity"><i class="mdi mdi-pencil-outline" aria-hidden="true" /> Actividad</span>
@@ -56,6 +66,28 @@
           </NuxtLink>
         </li>
       </ol>
+      <p v-if="lessonSearch.trim() && !filteredLessons.length" class="px-3 py-3 text-sm text-zinc-500">
+        No se encontraron lecciones.
+      </p>
+      <NuxtLink
+        v-if="canManageLessons"
+        :to="`${base}/lecciones/nueva`"
+        class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-800"
+        @click="emit('navigate')"
+      >
+        <i class="mdi mdi-plus-circle-outline text-lg" aria-hidden="true" />
+        Crear nueva lección
+      </NuxtLink>
+      <NuxtLink
+        v-if="canManageLessons"
+        :to="`${base}/preguntas`"
+        class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-800"
+        :class="linkClass(route.path === `${base}/preguntas`)"
+        @click="emit('navigate')"
+      >
+        <i class="mdi mdi-help-circle-outline text-lg" aria-hidden="true" />
+        Banco de preguntas
+      </NuxtLink>
 
       <!-- Recursos del curso -->
       <template v-if="course.video">
@@ -76,6 +108,14 @@ const route = useRoute()
 const { course, lessons, enrollment, isDone, doneCount, percent } = await useCourse(props.slug)
 const base = `/cursos/${props.slug}`
 const { user } = useAuth()
+const canManageLessons = computed(() => ['teacher', 'admin'].includes(enrollment.value?.role ?? ''))
+const lessonSearch = ref('')
+const filteredLessons = computed(() => {
+  const search = lessonSearch.value.trim().toLocaleLowerCase()
+  return lessons.value
+    .map((lesson, index) => ({ lesson, index }))
+    .filter(({ lesson }) => lesson.name.toLocaleLowerCase().includes(search))
+})
 
 function linkClass(active: boolean) {
   return active

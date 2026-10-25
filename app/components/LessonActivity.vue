@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="reading" v-html="renderContent(activity)" />
+    <div class="reading" v-html="renderContent(activity, format)" />
 
     <!-- Respuesta ya enviada -->
     <div v-if="answer" class="mt-8 space-y-4">
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import type { LessonAnswer } from '~/types/api'
 
-const props = defineProps<{ path: string; activity: string; answer: LessonAnswer | null; readonly?: boolean }>()
+const props = defineProps<{ path: string; activity: string; format: string; answer: LessonAnswer | null; readonly?: boolean }>()
 const emit = defineEmits<{ sent: [] }>()
 
 const text = ref('')

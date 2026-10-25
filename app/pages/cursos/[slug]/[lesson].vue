@@ -7,7 +7,17 @@
         <p class="text-sm text-zinc-500">Lección {{ index + 1 }} de {{ lessons.length }}</p>
         <DuiBadge v-if="done" label="Completada" color="success" variant="soft" size="sm" />
       </div>
-      <h1 class="mt-2 text-2xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">{{ lesson.name }}</h1>
+      <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">{{ lesson.name }}</h1>
+        <DuiAction
+          v-if="canManageLessons"
+          :to="`/cursos/${slug}/lecciones/${lesson.slug}/editar`"
+          variant="outline"
+          color="neutral"
+        >
+          <i class="mdi mdi-pencil-outline mr-1" aria-hidden="true" /> Editar lección
+        </DuiAction>
+      </div>
 
       <DuiAlert v-if="!user" color="neutral" variant="outline" class="mt-6">
         <NuxtLink :to="{ path: '/registro', query: { redirect: route.path } }" class="font-semibold underline">Crea tu cuenta gratis</NuxtLink>
@@ -24,7 +34,7 @@
           <div class="reading pt-6" v-html="renderContent(lesson.content, lesson.format)" />
         </template>
         <template #actividad>
-          <LessonActivity class="pt-6" :path="path" :activity="lesson.activity ?? ''" :answer="lesson.myAnswer" :readonly="!enrollment" @sent="saved" />
+          <LessonActivity class="pt-6" :path="path" :activity="lesson.activity ?? ''" :format="lesson.format" :answer="lesson.myAnswer" :readonly="!enrollment" @sent="saved" />
         </template>
         <template #quiz>
           <LessonQuiz class="pt-6" :path="path" :questions="questions" :quiz="lesson.myQuiz" :readonly="!enrollment" @sent="saved" />
@@ -64,7 +74,7 @@ const route = useRoute()
 const slug = String(route.params.slug)
 const path = `/learn/courses/${slug}/lessons/${route.params.lesson}`
 
-const [{ course, lessons, enrollment, isDone, refresh: refreshCourse }, { data: lesson, refresh: refreshLesson }] = await Promise.all([
+const [{ course, lessons, enrollment, isDone, refresh: refreshCourse, refreshCompletedLessons }, { data: lesson, refresh: refreshLesson }] = await Promise.all([
   useCourse(slug),
   useApi<LessonDetail>(path),
 ])
@@ -77,6 +87,7 @@ useSeo({
 
 const { user } = useAuth()
 const toast = useToast()
+const canManageLessons = computed(() => ['teacher', 'admin'].includes(enrollment.value?.role ?? ''))
 const index = computed(() => lessons.value.findIndex(l => l.id === lesson.value?.id))
 const prev = computed(() => lessons.value[index.value - 1])
 const next = computed(() => lessons.value[index.value + 1])
@@ -106,10 +117,11 @@ const marking = ref(false)
 async function markDone() {
   marking.value = true
   try {
-    await apiFetch(`${path}/answers`, { method: 'POST', body: { answer: 'Lección vista' } })
-    await saved()
+    lesson.value = await apiFetch<LessonDetail>(path)
+    await Promise.all([refreshCompletedLessons(), refreshCourse()])
+    toast.success('Lección marcada como vista y avance actualizado.')
   } catch (e) {
-    toast.error(apiError(e, 'No pudimos registrar tu avance.'))
+    toast.error(apiError(e, 'No pudimos registrar la lección como vista.'))
   } finally {
     marking.value = false
   }

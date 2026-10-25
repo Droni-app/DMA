@@ -42,6 +42,15 @@
             </li>
           </ol>
           <EmptyState v-else class="mt-4" icon="mdi mdi-book-clock-outline" title="Las lecciones llegarán pronto" />
+          <DuiAction
+            v-if="canManageLessons"
+            :to="`/cursos/${slug}/lecciones/nueva`"
+            variant="outline"
+            color="neutral"
+            class="mt-4"
+          >
+            <i class="mdi mdi-plus-circle-outline mr-1" aria-hidden="true" /> Crear nueva lección
+          </DuiAction>
         </div>
 
         <!-- Avance / llamado a la acción -->
@@ -92,6 +101,7 @@ if (!course.value) throw createError({ statusCode: 404, statusMessage: 'Curso no
 
 const info = computed(() => parseGroup(course.value!.group))
 const { user } = useAuth()
+const canManageLessons = computed(() => ['teacher', 'admin'].includes(enrollment.value?.role ?? ''))
 
 useSeo({
   title: `${course.value.name} · ${info.value.subject}${info.value.grade ? ` grado ${info.value.grade}` : ''}`,

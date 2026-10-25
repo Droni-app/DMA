@@ -38,17 +38,42 @@ export interface Lesson {
   activity: string | null
   video: string | null
   order: number
+  active?: boolean | number | string
+  limitDate?: string | null
+}
+
+export interface CompletedLesson extends Omit<Lesson, 'courseId'> {
+  course: Pick<Course, 'id' | 'slug'>
 }
 
 export interface Question {
   id: string
   name: string
-  description: string | null
-  response1: string
-  response2: string
-  response3: string | null
-  response4: string | null
-  response5: string | null
+  description?: string | null
+  picture?: string | null
+  attachment?: string | null
+  response1?: string
+  response2?: string
+  response3?: string | null
+  response4?: string | null
+  response5?: string | null
+  response_1?: string
+  response_2?: string
+  response_3?: string | null
+  response_4?: string | null
+  response_5?: string | null
+  responseCorrect?: number | string
+  response_correct?: number | string
+  wons?: number | string
+  losses?: number | string
+  difficulty?: number | string
+}
+
+export interface LessonQuestionLink {
+  id: string
+  lessonId: string
+  questionId: string
+  question: Question
 }
 
 export interface LessonAnswer {

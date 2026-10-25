@@ -1,9 +1,42 @@
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
+
+const contentTags = [
+  'a', 'abbr', 'b', 'blockquote', 'br', 'caption', 'code', 'col', 'colgroup', 'dd', 'del',
+  'div', 'dl', 'dt', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'li',
+  'ol', 'p', 'pre', 's', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'tfoot',
+  'th', 'thead', 'tr', 'u', 'ul',
+]
+const contentAttributes = ['alt', 'colspan', 'height', 'href', 'rowspan', 'scope', 'src', 'title', 'width']
+const htmlEntities: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+
+export function sanitizeContent(html: string) {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: contentTags,
+    ALLOWED_ATTR: contentAttributes,
+    ALLOW_DATA_ATTR: false,
+  })
+}
 
 // Contenido de lecciones y posts (por defecto viene en markdown)
 export function renderContent(content: string | null, format = 'markdown') {
   if (!content) return ''
-  return format === 'html' ? content : (marked.parse(content, { async: false }) as string)
+  let html: string
+  if (format === 'html') {
+    html = content
+  } else if (format === 'text') {
+    const escaped = content.replace(/[&<>"']/g, character => htmlEntities[character] ?? character)
+    html = `<p>${escaped.replace(/\r?\n/g, '<br>')}</p>`
+  } else {
+    html = marked.parse(content, { async: false }) as string
+  }
+  return sanitizeContent(html)
 }
 
 // Minutos de lectura aproximados

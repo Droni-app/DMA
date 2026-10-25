@@ -8,8 +8,8 @@
     <div v-else class="space-y-8">
       <fieldset v-for="(q, i) in questions" :key="q.id" class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
         <legend class="px-2 text-sm text-zinc-500">Pregunta {{ i + 1 }} de {{ questions.length }}</legend>
-        <p class="text-lg font-medium text-zinc-900 dark:text-white">{{ q.name }}</p>
-        <p v-if="q.description" class="mt-1 text-zinc-600 dark:text-zinc-400">{{ q.description }}</p>
+        <div class="reading text-lg font-medium" v-html="renderContent(q.name, 'html')" />
+        <div v-if="q.description" class="reading mt-1 text-zinc-600 dark:text-zinc-400" v-html="renderContent(q.description, 'html')" />
         <DuiRadio v-model="answers[q.id]" :name="q.id" :options="options(q)" class="mt-4" />
       </fieldset>
 
@@ -33,7 +33,13 @@ const error = ref('')
 
 // Las opciones van numeradas desde 1, igual que responseCorrect en la API
 function options(q: Question) {
-  return [q.response1, q.response2, q.response3, q.response4, q.response5]
+  return [
+    q.response1 ?? q.response_1,
+    q.response2 ?? q.response_2,
+    q.response3 ?? q.response_3,
+    q.response4 ?? q.response_4,
+    q.response5 ?? q.response_5,
+  ]
     .map((label, i) => ({ label: label ?? '', value: String(i + 1) }))
     .filter(option => option.label)
 }
