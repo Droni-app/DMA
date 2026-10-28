@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@dronico/droni-kit": "^2.0.0",
+    "@dronico/droni-kit": "^2.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "isomorphic-dompurify": "^4.6.0",
     "marked": "^16.4.2",
